@@ -155,7 +155,7 @@ $(function(){
                     prefix = "/UAVArena/";
                 }
 
-                layers[engineId + '|' + datasetId + '|' + productId] = L.tileLayer(prefix + 'data/' + engineId +'/' + datasetId + '/' + productId + '/tiles/{z}/{x}/{y}.png', {
+                layers[engineId + '|' + datasetId + '|' + productId] = L.tileLayer(prefix + 'data/' + engineId +'/' + datasetId + '/' + productId + '/tiles/{z}/{x}/{y}.webp', {
                     noWrap: true,
                     maxZoom: 99,
                     maxNativeZoom: 21,
