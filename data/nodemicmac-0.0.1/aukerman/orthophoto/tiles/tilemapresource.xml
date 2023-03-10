@@ -5,7 +5,7 @@
       <SRS>EPSG:3857</SRS>
       <BoundingBox minx="-81.75482120985720" miny="41.30266408543023" maxx="-81.74954389130518" maxy="41.30586719221552"/>
       <Origin x="-81.75482120985720" y="41.30266408543023"/>
-      <TileFormat width="256" height="256" mime-type="image/png" extension="png"/>
+      <TileFormat width="256" height="256" mime-type="image/webp" extension="webp"/>
       <TileSets profile="mercator">
         <TileSet href="12" units-per-pixel="38.21851413574219" order="12"/>
         <TileSet href="13" units-per-pixel="19.10925706787109" order="13"/>
