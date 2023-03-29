@@ -61,28 +61,24 @@
     </style>
 </head>
 <body>
-    <button id="btnInfo" type="button" class="btn btn-default btn-sm" data-toggle="modal" data-target="#infoModal">
+    <button id="btnInfo" type="button" class="btn btn-default btn-sm" data-bs-toggle="modal" data-bs-target="#infoModal">
      Info
     </button>
 
-    <div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalLabel" aria-hidden="true">
+    <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title" id="infoModalLabel">Data Information</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                These results have been processed for each software using using “medium quality” / default settings, 2 cm/px resolution (if it was available, otherwise highest allowed).<br/><br/>
-                Please note that each software has settings that can most likely improve quality. This is meant to be a visual comparison of 
-                results obtained with the defaults.<br/><br/>
-
-                <small><b>Disclaimer:</b> while we seek to be impartial, this application was built by <a href="https://community.opendronemap.org/t/lets-compare-odm-data-challenge-earn-a-badge">ODM contributors</a>.</small>
+                <p>These results have been processed for each software using using “medium quality” / default settings, 2 cm/px resolution (if it was available, otherwise highest allowed).</p>
+                <p>Please note that each software has settings that can most likely improve quality. This is meant to be a visual comparison of results obtained with the defaults.</p>
+                <p><small><b>Disclaimer:</b> while we seek to be impartial, this application was built by <a target="_blank" href="https://community.opendronemap.org/t/lets-compare-odm-data-challenge-earn-a-badge">ODM contributors</a>.</small></p>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">OK</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
             </div>
           </div>
         </div>
