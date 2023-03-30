@@ -25,23 +25,6 @@ function getRangeEvent (rangeInput) {
   return 'oninput' in rangeInput ? 'input' : 'change'
 }
 
-function cancelMapDrag () {
-  mapWasDragEnabled = this._map.dragging.enabled()
-  mapWasTapEnabled = this._map.tap && this._map.tap.enabled()
-  this._map.dragging.disable()
-  this._map.tap && this._map.tap.disable()
-}
-
-function uncancelMapDrag (e) {
-  this._refocusOnMap(e)
-  if (mapWasDragEnabled) {
-    this._map.dragging.enable()
-  }
-  if (mapWasTapEnabled) {
-    this._map.tap.enable()
-  }
-}
-
 // convert arg to an array - returns empty array if arg is undefined
 function asArray (arg) {
   return (arg === 'undefined') ? [] : Array.isArray(arg) ? arg : [arg]
@@ -87,6 +70,7 @@ L.Control.SideBySide = L.Control.extend({
     range.style.paddingLeft = range.style.paddingRight = this.options.padding + 'px'
     this._addEvents()
     this._updateLayers()
+    L.DomEvent.disableClickPropagation(this._container);
     return this
   },
 
@@ -174,8 +158,6 @@ L.Control.SideBySide = L.Control.extend({
     map.on('move', this._updateClip, this)
     map.on('layeradd layerremove', this._updateLayers, this)
     on(range, getRangeEvent(range), this._updateClip, this)
-    on(range, L.Browser.touch ? 'touchstart' : 'mousedown', cancelMapDrag, this)
-    on(range, L.Browser.touch ? 'touchend' : 'mouseup', uncancelMapDrag, this)
   },
 
   _removeEvents: function () {
@@ -183,8 +165,6 @@ L.Control.SideBySide = L.Control.extend({
     var map = this._map
     if (range) {
       off(range, getRangeEvent(range), this._updateClip, this)
-      off(range, L.Browser.touch ? 'touchstart' : 'mousedown', cancelMapDrag, this)
-      off(range, L.Browser.touch ? 'touchend' : 'mouseup', uncancelMapDrag, this)
     }
     if (map) {
       map.off('layeradd layerremove', this._updateLayers, this)
