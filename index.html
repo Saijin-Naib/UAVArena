@@ -9,19 +9,38 @@
     <link rel="stylesheet" href="./libs/leaflet/leaflet.css" />
     <script src="./libs/leaflet/leaflet.js"></script>
     <script src="./libs/leaflet-side-by-side.js"></script>
+    <script src="./libs/leaflet-sync.js"></script>
     
     <link rel="stylesheet" href="./libs/bootstrap.min.css" />
 
     <style>
         body {
+            width: 100%;
+            height: 100%;
             margin: 0;
             padding: 0;
         }
-        #map {
+        #sideBySideMap {
             position: absolute;
             top: 54px;
             bottom: 0;
             width: 100%;
+        }
+        #syncMap1 {
+            position: absolute;
+            top: 54px;
+            bottom: 0;
+            left: 0;
+            width: 50%;
+            /* float: left; */
+        }
+        #syncMap2 {
+            position: absolute;
+            top: 54px;
+            bottom: 0;
+            right: 0;
+            width: 50%;
+            /* float: right; */
         }
         #controls {
             padding: 8px;
@@ -48,20 +67,23 @@
             padding: 2px;
             opacity: 0.8;
         }
-        #btnInfo{
+        #controlBtns{
             position: absolute;
             top: 60px;
             right: 8px;
-            background: white;
-            box-shadow: 1px 1px 4px -2px #000;
             z-index: 1000000;
         }
     </style>
 </head>
 <body>
-    <button id="btnInfo" type="button" class="btn btn-default btn-sm" data-toggle="modal" data-target="#infoModal">
-     Info
-    </button>
+    <div id="controlBtns">
+      <button id="btnChangeComparison" type="button" data-comparison="sideBySide" class="btn btn-light btn-sm">
+        Switch to synced comparison
+      </button>
+      <button id="btnInfo" type="button" class="btn btn-light btn-sm" data-toggle="modal" data-target="#infoModal">
+        Info
+      </button>
+    </div>
 
     <div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -110,7 +132,9 @@
             </div>
         </div>
     </div>
-    <div id='map'></div>
+    <div id="sideBySideMap"></div>
+    <div id="syncMap1"></div>
+    <div id="syncMap2"></div>    
 
     <script>
 

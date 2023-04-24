@@ -65,24 +65,61 @@ $(function(){
             label: "Pix4D 4.4.10"
         },
     ]
+    
+    // Add functionality to the btn for switching comparison type
+    $("#btnChangeComparison").on("click", function(){
+        var comparisonType = $("#btnChangeComparison").attr("data-comparison");
+        if (comparisonType === "sideBySide"){
+            $("#btnChangeComparison").attr("data-comparison", "sync");
+            $("#btnChangeComparison").text("Switch to slider comparison");
+            // get center and zoom of sideBySide map and set sync map to it
+            syncMap1.setView(sideBySideMap.getCenter(), sideBySideMap.getZoom());
+            updateLayers();        
+        }else{
+            $("#btnChangeComparison").attr("data-comparison", "sideBySide");
+            $("#btnChangeComparison").text("Switch to synced comparison");
+            // get center and zoom of sync map and set sideBySide map to it
+            sideBySideMap.setView(syncMap1.getCenter(), syncMap1.getZoom());
+            updateLayers();
+        }  
+    });  
 
-    var map = L.map('map', {
+    // Initiate maps
+    var sideBySideMap = L.map('sideBySideMap', {
         zoom: 20,
         center: datasets[0].center
     });
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    var syncMap1 = L.map('syncMap1', {
+        zoom: 20,
+        center: datasets[0].center
+    });
+    var syncMap2 = L.map('syncMap2', {
+        zoom: 20,
+        center: datasets[0].center,
+        zoomControl: false
+    });
+    
+    // Create and add an OSM reference layer to each map
+    // (we cannot create just one L.tileLayer and initiate all 3 maps with it)
+    var osmTileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    var osmTileConfig = {
         maxZoom: 99,
         maxNativeZoom: 19,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
+    }
+    L.tileLayer(osmTileUrl, osmTileConfig).addTo(sideBySideMap);
+    L.tileLayer(osmTileUrl, osmTileConfig).addTo(syncMap1);
+    L.tileLayer(osmTileUrl, osmTileConfig).addTo(syncMap2);
+    
+    // Sync the two synced maps per https://github.com/jieter/Leaflet.Sync
+    syncMap1.sync(syncMap2);
+    syncMap2.sync(syncMap1);
 
 
     // Populate datasets
     var $dataset = $("#dataset");
     $dataset.on('change', function(e){
-        updateLayers();
-        centerOnLayer();
+        updateLayers("dataset");
     });
     
     for (var i in datasets){
@@ -140,66 +177,86 @@ $(function(){
         updateLayers();
     });
 
-    // Create layers
-    var layers = {};
-    $leftEngine.children().each(function(){
-        var engineId = $(this).val();
-        $dataset.children().each(function(){
-            var datasetId = $(this).val();
+    var leftLayer, rightLayer;
+    var prefix = "/";
+    if (window.location.href.toLowerCase().indexOf("opendronemap.github.io") !== -1){
+        prefix = "/UAVArena/";
+    }
+    var layerConfig = {
+        noWrap: true,
+        maxZoom: 99,
+        maxNativeZoom: 21,
+        tms: true
+    }
+    var sideBySide = L.control.sideBySide([], []).addTo(sideBySideMap);
+    
+    var cleanLayers = function(){
+        if (sideBySideMap.hasLayer(leftLayer)) sideBySideMap.removeLayer(leftLayer);
+        if (sideBySideMap.hasLayer(rightLayer)) sideBySideMap.removeLayer(rightLayer);
+        if (syncMap1.hasLayer(leftLayer)) syncMap1.removeLayer(leftLayer);
+        if (syncMap2.hasLayer(rightLayer)) syncMap2.removeLayer(rightLayer);
+    }
+    
+    var updateSideBySideLayers = function(){  
+        leftLayer =  L.tileLayer(prefix + 'data/' + $leftEngine.val() +'/' + 
+            $dataset.val() + '/' + $product.val() + '/tiles/{z}/{x}/{y}.png', layerConfig);
+        rightLayer = L.tileLayer(prefix + 'data/' + $rightEngine.val() +'/' + 
+            $dataset.val() + '/' + $product.val() + '/tiles/{z}/{x}/{y}.png', layerConfig);
 
-            $product.children().each(function(){
-                var productId = $(this).val();
-
-                var prefix = "/";
-                if (window.location.href.toLowerCase().indexOf("opendronemap.github.io") !== -1){
-                    prefix = "/UAVArena/";
-                }
-
-                layers[engineId + '|' + datasetId + '|' + productId] = L.tileLayer(prefix + 'data/' + engineId +'/' + datasetId + '/' + productId + '/tiles/{z}/{x}/{y}.png', {
-                    noWrap: true,
-                    maxZoom: 99,
-                    maxNativeZoom: 21,
-                    tms: true
-                });
-            });
-        });
-    });
-
-    var sideBySide = L.control.sideBySide([], []).addTo(map);
-
-    var updateLayers = function(){
-        for (var k in layers){
-            map.removeLayer(layers[k]);
-        }
-        
-        var leftLayer = layers[$leftEngine.val() + '|' + $dataset.val() + '|' + $product.val()];
-        var rightLayer = layers[$rightEngine.val() + '|' + $dataset.val() + '|' + $product.val()];
-        
         if (leftLayer){
-            leftLayer.addTo(map);
+            leftLayer.addTo(sideBySideMap);
             sideBySide.setLeftLayers([leftLayer]);
         }else{
             sideBySide.setLeftLayers([]);
         }
 
         if (rightLayer){
-            rightLayer.addTo(map);
+            rightLayer.addTo(sideBySideMap);
             sideBySide.setRightLayers([rightLayer]);
         }else{
             sideBySide.setRightLayers([]);
         }
     };
+    
+    var updateSyncLayers = function(){
+        leftLayer =  L.tileLayer(prefix + 'data/' + $leftEngine.val() +'/' + 
+            $dataset.val() + '/' + $product.val() + '/tiles/{z}/{x}/{y}.png', layerConfig);
+        rightLayer = L.tileLayer(prefix + 'data/' + $rightEngine.val() +'/' + 
+            $dataset.val() + '/' + $product.val() + '/tiles/{z}/{x}/{y}.png', layerConfig);
 
-    var centerOnLayer = function(){
-        for (var k in datasets){
-            if (datasets[k].id === $dataset.val()){
-                map.panTo(datasets[k].center);
-                break;
+        if (leftLayer) leftLayer.addTo(syncMap1);
+        if (rightLayer) rightLayer.addTo(syncMap2);
+    };
+    
+    var updateLayers = function(updateType){
+        cleanLayers();
+        // Center the map on the dataset *if* the dataset changes, 
+        // because then we're jumping to a different location
+        if(updateType === "dataset"){ 
+            for (var k in datasets){
+                if (datasets[k].id === $dataset.val()){
+                    syncMap1.panTo(datasets[k].center);
+                    sideBySideMap.panTo(datasets[k].center);
+                    break;
+                }
             }
+        }
+        
+        // show hide the maps according to which comparison is active
+        var comparisonType = $("#btnChangeComparison").attr("data-comparison");
+        if (comparisonType === "sideBySide"){
+            $("#syncMap1").hide();
+            $("#syncMap2").hide();
+            $("#sideBySideMap").show();
+            updateSideBySideLayers();
+        }else{
+            $("#syncMap1").show();
+            $("#syncMap2").show();
+            $("#sideBySideMap").hide();
+            updateSyncLayers();
         }
     };
 
     updateLayers();
-    centerOnLayer();
 
 });
