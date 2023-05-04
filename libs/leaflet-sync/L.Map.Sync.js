@@ -1,3 +1,4 @@
+// from https://github.com/jieter/Leaflet.Sync
 /*
  * Extends L.Map to synchronize the interaction on one map to one or more other maps.
  */

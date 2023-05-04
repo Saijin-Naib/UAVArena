@@ -16,15 +16,29 @@
 
     <style>
         body {
-            margin: 0;
-            padding: 0;
+            width: 100%;
+            height: 100%;
         }
-        #map {
+        #sideBySideMap {
             position: absolute;
             top: 54px;
             bottom: 0;
             width: 100%;
         }
+        #syncMap1 {
+            position: absolute;
+            top: 54px;
+            bottom: 0;
+            left: 0;
+            width: 50%;
+        }
+        #syncMap2 {
+            position: absolute;
+            top: 54px;
+            bottom: 0;
+            right: 0;
+            width: 50%;
+        }        
         #controls {
             padding: 8px;
             border-bottom: 1px solid black;
@@ -50,20 +64,23 @@
             padding: 2px;
             opacity: 0.8;
         }
-        #btnInfo{
+        #controlBtns{
             position: absolute;
             top: 60px;
             right: 8px;
-            background: white;
-            box-shadow: 1px 1px 4px -2px #000;
             z-index: 1000000;
         }
     </style>
 </head>
 <body>
-    <button id="btnInfo" type="button" class="btn btn-default btn-sm" data-bs-toggle="modal" data-bs-target="#infoModal">
-     Info
-    </button>
+    <div id="controlBtns">
+      <button id="btnChangeComparison" type="button" data-comparison="sideBySide" class="btn btn-light btn-sm">
+        Switch to synced comparison
+      </button>
+      <button id="btnInfo" type="button" class="btn btn-light btn-sm" data-toggle="modal" data-target="#infoModal">
+        Info
+      </button>
+    </div>
 
     <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -108,7 +125,9 @@
             </div>
         </div>
     </div>
-    <div id='map'></div>
+    <div id="sideBySideMap"></div>
+    <div id="syncMap1"></div>
+    <div id="syncMap2"></div>    
 
     <script>
 
