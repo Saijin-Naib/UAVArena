@@ -65,6 +65,21 @@ $(function(){
             label: "Pix4D 4.4.10"
         },
     ]
+
+    // Initiate maps
+    var sideBySideMap = L.map('sideBySideMap', {
+        zoom: 20,
+        center: datasets[0].center
+    });
+    var syncMap1 = L.map('syncMap1', {
+        zoom: 20,
+        center: datasets[0].center
+    });
+    var syncMap2 = L.map('syncMap2', {
+        zoom: 20,
+        center: datasets[0].center,
+        zoomControl: false
+    });
     
     // Add functionality to the btn for switching comparison type
     $("#btnChangeComparison").on("click", function(){
@@ -83,21 +98,6 @@ $(function(){
             updateLayers();
         }  
     });  
-
-    // Initiate maps
-    var sideBySideMap = L.map('sideBySideMap', {
-        zoom: 20,
-        center: datasets[0].center
-    });
-    var syncMap1 = L.map('syncMap1', {
-        zoom: 20,
-        center: datasets[0].center
-    });
-    var syncMap2 = L.map('syncMap2', {
-        zoom: 20,
-        center: datasets[0].center,
-        zoomControl: false
-    });
     
     // Create and add an OSM reference layer to each map
     // (we cannot create just one L.tileLayer and initiate all 3 maps with it)
