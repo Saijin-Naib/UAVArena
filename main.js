@@ -89,20 +89,21 @@ $(function(){
             $("#btnChangeComparison").text("Switch to slider comparison");
             // get center and zoom of sideBySide map and set sync map to it
             syncMap1.setView(sideBySideMap.getCenter(), sideBySideMap.getZoom());
-            updateLayers();        
+            updateLayers();
         }else{
             $("#btnChangeComparison").attr("data-comparison", "sideBySide");
             $("#btnChangeComparison").text("Switch to synced comparison");
             // get center and zoom of sync map and set sideBySide map to it
             sideBySideMap.setView(syncMap1.getCenter(), syncMap1.getZoom());
             updateLayers();
-        }  
-    });  
-    
+        }
+    });
+
     // Create and add an OSM reference layer to each map
     // (we cannot create just one L.tileLayer and initiate all 3 maps with it)
     var osmTileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
     var osmTileConfig = {
+        minZoom: 0,
         maxZoom: 99,
         maxNativeZoom: 19,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -110,7 +111,15 @@ $(function(){
     L.tileLayer(osmTileUrl, osmTileConfig).addTo(sideBySideMap);
     L.tileLayer(osmTileUrl, osmTileConfig).addTo(syncMap1);
     L.tileLayer(osmTileUrl, osmTileConfig).addTo(syncMap2);
-    
+
+    // Initiate the mini maps
+    // (docs say "don't reuse the layer you added to the main map")
+    var sideMiniLayerGroup = L.layerGroup( [L.tileLayer(osmTileUrl, osmTileConfig)] );
+    var sideMiniMap = new L.Control.MiniMap(sideMiniLayerGroup, {zoomLevelOffset: -5}).addTo(sideBySideMap);
+    var syncMiniLayerGroup = L.layerGroup( [L.tileLayer(osmTileUrl, osmTileConfig)] );
+    var syncMiniMap = new L.Control.MiniMap(syncMiniLayerGroup, {zoomLevelOffset: -5}).addTo(syncMap2);
+
+
     // Sync the two synced maps per https://github.com/jieter/Leaflet.Sync
     syncMap1.sync(syncMap2);
     syncMap2.sync(syncMap1);
@@ -121,11 +130,11 @@ $(function(){
     $dataset.on('change', function(e){
         updateLayers("dataset");
     });
-    
+
     for (var i in datasets){
         var d = datasets[i];
         var $opt = $('<option value="' + d.id + '">' + d.label + '</option>');
-        
+
         $dataset.append($opt);
     }
 
@@ -162,12 +171,12 @@ $(function(){
             updateLayers();
         }
     });
-    
+
     for (var i in engines){
         var e = engines[i];
         var $opt = $('<option value="' + e.id + '"' + (e.rightStart ? 'selected' : '') + '>' + e.label + '</option>');
         $rightEngine.append($opt);
-        
+
         $opt = $('<option value="' + e.id + '"' + (e.leftStart ? 'selected' : '') + '>' + e.label + '</option>');
         $leftEngine.append($opt);
     }
@@ -177,7 +186,7 @@ $(function(){
         updateLayers();
     });
 
-    var leftLayer, rightLayer;
+    var leftLayer, rightLayer, miniLayer;
     var prefix = "https://opendronemap.github.io/UAVArena-data/";
 
     var layerConfig = {
@@ -187,7 +196,7 @@ $(function(){
         tms: true
     }
     var sideBySide = L.control.sideBySide([], []).addTo(sideBySideMap);
-    
+
     var cleanLayers = function(){
         if(leftLayer){
           if (sideBySideMap.hasLayer(leftLayer)) sideBySideMap.removeLayer(leftLayer);
@@ -195,14 +204,22 @@ $(function(){
         }
         if(rightLayer){
           if (sideBySideMap.hasLayer(rightLayer)) sideBySideMap.removeLayer(rightLayer);
+          if (sideMiniLayerGroup.hasLayer(miniLayer)) sideMiniLayerGroup.removeLayer(miniLayer);
           if (syncMap2.hasLayer(rightLayer)) syncMap2.removeLayer(rightLayer);
-        }  
+          if (syncMiniLayerGroup.hasLayer(miniLayer)) syncMiniLayerGroup.removeLayer(miniLayer);
+        }
     }
-    
-    var updateSideBySideLayers = function(){  
-        leftLayer =  L.tileLayer(prefix + 'data/' + $leftEngine.val() +'/' + 
+
+    var updateSideBySideLayers = function(){
+        leftLayer =  L.tileLayer(prefix + 'data/' + $leftEngine.val() +'/' +
             $dataset.val() + '/' + $product.val() + '/tiles/{z}/{x}/{y}.webp', layerConfig);
-        rightLayer = L.tileLayer(prefix + 'data/' + $rightEngine.val() +'/' + 
+        rightLayer = L.tileLayer(prefix + 'data/' + $rightEngine.val() +'/' +
+            $dataset.val() + '/' + $product.val() + '/tiles/{z}/{x}/{y}.webp', layerConfig);
+        // to keep things cleaner, we only use the right layer
+        // and only show the minimap on the right side map
+        // presumably they will have approx the same extent and
+        // the differences not apparent at mini map size
+        miniLayer = L.tileLayer(prefix + 'data/' + $rightEngine.val() +'/' +
             $dataset.val() + '/' + $product.val() + '/tiles/{z}/{x}/{y}.webp', layerConfig);
 
         if (leftLayer){
@@ -215,26 +232,30 @@ $(function(){
         if (rightLayer){
             rightLayer.addTo(sideBySideMap);
             sideBySide.setRightLayers([rightLayer]);
+            miniLayer.addTo(sideMiniLayerGroup);
         }else{
             sideBySide.setRightLayers([]);
         }
     };
-    
+
     var updateSyncLayers = function(){
-        leftLayer =  L.tileLayer(prefix + 'data/' + $leftEngine.val() +'/' + 
+        leftLayer =  L.tileLayer(prefix + 'data/' + $leftEngine.val() +'/' +
             $dataset.val() + '/' + $product.val() + '/tiles/{z}/{x}/{y}.webp', layerConfig);
-        rightLayer = L.tileLayer(prefix + 'data/' + $rightEngine.val() +'/' + 
+        rightLayer = L.tileLayer(prefix + 'data/' + $rightEngine.val() +'/' +
+            $dataset.val() + '/' + $product.val() + '/tiles/{z}/{x}/{y}.webp', layerConfig);
+        miniLayer = L.tileLayer(prefix + 'data/' + $rightEngine.val() +'/' +
             $dataset.val() + '/' + $product.val() + '/tiles/{z}/{x}/{y}.webp', layerConfig);
 
         if (leftLayer) leftLayer.addTo(syncMap1);
         if (rightLayer) rightLayer.addTo(syncMap2);
+        if (miniLayer) miniLayer.addTo(syncMiniLayerGroup);
     };
-    
+
     var updateLayers = function(updateType){
         cleanLayers();
-        // Center the map on the dataset *if* the dataset changes, 
+        // Center the map on the dataset *if* the dataset changes,
         // because then we're jumping to a different location
-        if(updateType === "dataset"){ 
+        if(updateType === "dataset"){
             for (var k in datasets){
                 if (datasets[k].id === $dataset.val()){
                     syncMap1.panTo(datasets[k].center);
@@ -243,7 +264,7 @@ $(function(){
                 }
             }
         }
-        
+
         // show hide the maps according to which comparison is active
         var comparisonType = $("#btnChangeComparison").attr("data-comparison");
         if (comparisonType === "sideBySide"){
